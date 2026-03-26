@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.webp" alt="Auto Optimization" width="100%">
+</p>
+
 # Auto Optimization
 
 **Automated workspace hygiene for AI agent workspaces.** Born from managing a workspace with 100+ files changing daily across 20+ projects, multiple AI agents, and scheduled jobs running around the clock.
