@@ -1,0 +1,17 @@
+# Sentinel files (local state, not tracked)
+maintenance/.last-*
+.last-error-hash
+.error-repeat-count
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
