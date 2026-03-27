@@ -4,6 +4,8 @@
 
 # Auto Optimization
 
+> **🇹🇼 中文網頁版** — [penchan.co/ai/auto-optimization](https://penchan.co/ai/auto-optimization/)
+
 **Automated workspace hygiene for AI agent workspaces.** Born from managing a workspace with 100+ files changing daily across 20+ projects, multiple AI agents, and scheduled jobs running around the clock.
 
 The core insight: **scripts do deterministic work, AI only handles judgment calls.** This separation keeps costs near zero for routine maintenance while reserving expensive AI time for decisions that actually require intelligence.
@@ -19,6 +21,8 @@ AI agent workspaces accumulate cruft fast:
 - The maintenance system itself becoming more complex than the workspace
 
 Without automated hygiene, you spend the first 10 minutes of every session cleaning up the last one.
+
+<img src="assets/sections/architecture.webp" alt="Architecture" width="100%">
 
 ## Architecture: Four Tiers
 
@@ -36,6 +40,8 @@ Each tier runs a shell script that outputs structured data. Tiers 0-1 are fully 
 - **Early exit** — If the workspace is clean, scripts exit in milliseconds instead of scanning everything.
 - **Error dedup** — Same warning pattern suppressed until 3rd consecutive occurrence, preventing alert fatigue.
 - **Optimization suggestions loop** — Scripts discover gaps in their own rules and propose fixes for the next review cycle.
+
+<img src="assets/sections/scripts.webp" alt="Scripts" width="100%">
 
 ## Quick Start
 
