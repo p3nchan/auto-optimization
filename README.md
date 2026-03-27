@@ -4,7 +4,7 @@
 
 # Auto Optimization
 
-> **🇹🇼 中文網頁版** — [penchan.co/ai/auto-optimization](https://penchan.co/ai/auto-optimization/)
+> **🐧 中文網頁版** — [penchan.co/ai/auto-optimization](https://penchan.co/ai/auto-optimization/)
 
 **Automated workspace hygiene for AI agent workspaces.** Born from managing a workspace with 100+ files changing daily across 20+ projects, multiple AI agents, and scheduled jobs running around the clock.
 
