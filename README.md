@@ -4,7 +4,7 @@
 
 # Auto Optimization
 
-> **🐧 中文網頁版** — [penchan.co/ai/auto-optimization](https://penchan.co/ai/auto-optimization/)
+> **🐧 中文網頁版** — [penchan.co/ai/ai-agent-system-maintenance](https://penchan.co/ai/ai-agent-system-maintenance/)
 
 **Automated workspace hygiene for AI agent workspaces.** Born from managing a workspace with 100+ files changing daily across 20+ projects, multiple AI agents, and scheduled jobs running around the clock.
 
@@ -40,6 +40,9 @@ Each tier runs a shell script that outputs structured data. Tiers 0-1 are fully 
 - **Early exit** — If the workspace is clean, scripts exit in milliseconds instead of scanning everything.
 - **Error dedup** — Same warning pattern suppressed until 3rd consecutive occurrence, preventing alert fatigue.
 - **Optimization suggestions loop** — Scripts discover gaps in their own rules and propose fixes for the next review cycle.
+- **Cron health scanner** — Daily script scans `jobs.json` for `consecutiveErrors > 0`, catching silently failing scheduled jobs.
+- **Root stray file sweep** — Automatically moves misplaced files (`.webp`, `.png`, `.jsonl`) from workspace root to `tmp/`.
+- **Session notes truncation** — Prevents unbounded growth of rolling log files by archiving old entries.
 
 <img src="assets/sections/scripts.webp" alt="Scripts" width="100%">
 
@@ -204,6 +207,10 @@ These patterns emerged from months of real operation:
 6. **Sentinel > cron status**: Checking "did the job write its success marker?" is more reliable than checking "did cron run the job?" because cron can run a job that fails silently.
 
 7. **AI reviews, scripts collect**: An AI agent reading a structured scan report makes better decisions than an AI agent running `find` commands itself. The script handles filesystem details; the AI handles semantic understanding.
+
+8. **Monitor cron health, not just cron output**: Scheduled jobs can fail silently for weeks. We discovered 5 broken jobs only through a manual health check. Now the daily script scans `jobs.json` for `consecutiveErrors > 0` and reports them automatically.
+
+9. **Match model tier to judgment needs**: Hourly checks need zero AI judgment (shell exit codes suffice). Daily cleanup needs light judgment (is this file done?). Weekly review needs strategic thinking. Don't use an expensive model for work a shell script can handle, but don't use a cheap model for decisions that require understanding context.
 
 ## Customization
 

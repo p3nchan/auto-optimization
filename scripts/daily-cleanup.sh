@@ -284,6 +284,49 @@ if [ "$CRON_BAK_COUNT" -gt "$LIMIT_CRON_BAK_KEEP" ]; then
   ACTIONS=$((ACTIONS + CRON_BAK_DELETED))
 fi
 
+# --- 3e: Root-level stray files → tmp/ ---
+ROOT_MOVED=0
+for pattern in "*.webp" "*.png" "*.jsonl"; do
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    mv "$f" "$WS/tmp/" 2>/dev/null && ROOT_MOVED=$((ROOT_MOVED + 1))
+  done < <(find "$WS" -maxdepth 1 -name "$pattern" -type f 2>/dev/null)
+done
+ACTIONS=$((ACTIONS + ROOT_MOVED))
+
+# --- 3f: Cron health check (scan for broken jobs) ---
+CRON_BROKEN=""
+CRON_BROKEN_COUNT=0
+if [ -f "$CRON_DIR/jobs.json" ] && command -v python3 &>/dev/null; then
+  CRON_BROKEN=$(python3 -c "
+import json
+d = json.load(open('$CRON_DIR/jobs.json'))
+for j in d.get('jobs', []):
+    if j.get('enabled') and j.get('state', {}).get('consecutiveErrors', 0) > 0:
+        name = j['name']
+        errs = j['state']['consecutiveErrors']
+        last = j['state'].get('lastError', 'unknown')[:80]
+        print(f'{name}: {errs} errors — {last}')
+" 2>/dev/null)
+  CRON_BROKEN_COUNT=$(echo "$CRON_BROKEN" | grep -c . 2>/dev/null || echo 0)
+fi
+
+# --- 3g: Session notes truncation (keep latest N entries) ---
+SESSION_NOTES_TRUNCATED=false
+SESSION_NOTES_FILE="$WS/tmp/cc-session-notes.md"
+if [ -f "$SESSION_NOTES_FILE" ]; then
+  ENTRY_COUNT=$(grep -c "^## " "$SESSION_NOTES_FILE" 2>/dev/null || echo 0)
+  if [ "$ENTRY_COUNT" -gt 50 ]; then
+    KEEP_LINE=$(grep -n "^## " "$SESSION_NOTES_FILE" | head -10 | tail -1 | cut -d: -f1)
+    TOTAL_LINES=$(wc -l < "$SESSION_NOTES_FILE")
+    if [ -n "$KEEP_LINE" ] && [ "$KEEP_LINE" -lt "$TOTAL_LINES" ]; then
+      tail -n +"$((KEEP_LINE + 1))" "$SESSION_NOTES_FILE" >> "${SESSION_NOTES_FILE%.md}-archive.md" 2>/dev/null
+      head -n "$KEEP_LINE" "$SESSION_NOTES_FILE" > "$SESSION_NOTES_FILE.tmp" && mv "$SESSION_NOTES_FILE.tmp" "$SESSION_NOTES_FILE"
+      SESSION_NOTES_TRUNCATED=true
+    fi
+  fi
+fi
+
 # ============================================================
 # PHASE 4: Collect data for AI assessment
 # ============================================================
@@ -319,6 +362,9 @@ echo "media_deleted: $MEDIA_DELETED (freed ${MEDIA_FREED_KB}KB)"
 echo "media_empty_dirs_deleted: $MEDIA_EMPTY_DIRS_DELETED"
 echo "cron_logs_deleted: $CRON_DELETED"
 echo "cron_bak_deleted: $CRON_BAK_DELETED"
+echo "root_stray_moved: $ROOT_MOVED"
+echo "cron_broken_count: $CRON_BROKEN_COUNT"
+echo "session_notes_truncated: $SESSION_NOTES_TRUNCATED"
 echo ""
 echo "--- Health ---"
 echo "gateway: $GATEWAY_STATUS"
@@ -344,6 +390,12 @@ fi
 if [ -n "$NON_COMPLIANT_FILES" ]; then
   echo "--- Non-compliant Filenames ---"
   echo -e "$NON_COMPLIANT_FILES"
+  echo ""
+fi
+
+if [ "$CRON_BROKEN_COUNT" -gt 0 ]; then
+  echo "--- Cron Jobs with Errors ---"
+  echo "$CRON_BROKEN"
   echo ""
 fi
 
